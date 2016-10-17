@@ -85,7 +85,7 @@ class Coverflow extends Component {
       height: ReactDOM.findDOMNode(this).offsetHeight
     };
     var baseWidth = state.width / (displayQuantityOfSide * 2 + 1);
-    var active = active || this.props.active;
+    var active = active === 0 ? 0 : (active || this.props.active);
     if (typeof active === 'number' && ~~active < length) {
       active = ~~active;
       var move = 0;
@@ -133,7 +133,7 @@ class Coverflow extends Component {
    */
   _center() {
     let length = React.Children.count(this.props.children);
-    return Math.floor(length / 2);
+    return length / 2;
   }
 
   _keypress(e) {
@@ -150,29 +150,31 @@ class Coverflow extends Component {
     let style = {};
     let baseWidth = width / (displayQuantityOfSide * 2 + 1);
     let length = React.Children.count(this.props.children);
-    let offset = length % 2 === 0 ? -width/10 : 0;
     // Handle opacity
     let depth = displayQuantityOfSide - Math.abs(current - index);
     let opacity = depth === 1 ? 0.95 : 0.5;
     opacity = depth === 2 ? 0.92 : opacity;
     opacity = depth === 3 ? 0.9 : opacity;
     opacity = current === index ? 1 : opacity;
+
+    const tX = this.state.move - (baseWidth / 2);
+
     // Handle translateX
     if (index === current) {
       style['width'] = `${baseWidth}px`;
-      style['transform'] = `translateX(${this.state.move + offset}px) scale(1.2)`;
+      style['transform'] = `translateX(${tX}px) scale(1.2)`;
       style['zIndex'] = `${10 - depth}`;
       style['opacity'] = opacity;
     } else if (index < current) {
       // Left side
       style['width'] = `${baseWidth}px`;
-      style['transform'] = `translateX(${this.state.move + offset}px) rotateY(40deg)`;
+      style['transform'] = `translateX(${tX}px) rotateY(40deg)`;
       style['zIndex'] = `${10 - depth}`;
       style['opacity'] = opacity;
     } else if (index > current) {
       // Right side
       style['width'] = `${baseWidth}px`;
-      style['transform'] = ` translateX(${this.state.move + offset}px) rotateY(-40deg)`;
+      style['transform'] = ` translateX(${tX}px) rotateY(-40deg)`;
       style['zIndex'] = `${10 - depth}`;
       style['opacity'] = opacity;
     }
@@ -187,14 +189,16 @@ class Coverflow extends Component {
 
     this.refs.stage.style['pointerEvents'] = 'none';
     if (this.state.current === index) {
+      this._removePointerEvents();
+
+    } else {
+
       if (typeof action === 'string') {
         window.open(action, '_blank');
       } else if (typeof action === 'function') {
         action();
       }
 
-      this._removePointerEvents();
-    } else {
       const {displayQuantityOfSide} = this.props;
       const {width} = this.state;
       let baseWidth = width / (displayQuantityOfSide * 2 + 1);
