@@ -145,7 +145,7 @@ class Coverflow extends Component {
   }
 
   _handleFigureStyle(index, current) {
-    const {displayQuantityOfSide} = this.props;
+    const { displayQuantityOfSide, itemSize } = this.props;
     const {width} = this.state;
     let style = {};
     let baseWidth = width / (displayQuantityOfSide * 2 + 1);
@@ -155,24 +155,23 @@ class Coverflow extends Component {
 
     // Handle translateX
     if (index === current) {
-      style['width'] = `${baseWidth}px`;
+      style['width'] = `${itemSize}`;
       style['transform'] = `translateX(${tX}px) scale(1.2)`;
     } else if (index < current) {
       // Left side
-      style['width'] = `${baseWidth}px`;
+      style['width'] = `${itemSize}`;
       style['transform'] = `translateX(${tX}px) rotateY(40deg)`;
     } else if (index > current) {
       // Right side
-      style['width'] = `${baseWidth}px`;
+      style['width'] = `${itemSize}`;
       style['transform'] = ` translateX(${tX}px) rotateY(-40deg)`;
     }
     return style;
   }
 
   _handleFigureMaskStyle(index, current) {
-    const { maskClassName } = this.props;
+    const { maskClassName, itemSize } = this.props;
     let style = {};
-    let baseWidth = this.state.width / (this.props.displayQuantityOfSide * 2 + 1);
 
     // Handle opacity
     let depth = Math.abs(current - index);
@@ -198,7 +197,7 @@ class Coverflow extends Component {
       style['opacity'] = opacity;
 
     } else {
-      style['width'] = `${baseWidth}px`;
+      style['width'] = `${itemSize}`;
       style['height'] = `100%`;
       style['zIndex'] = `${10 - depth}`;
       style['background'] = `rgba(0,0,0,${opacity})`;
@@ -353,7 +352,8 @@ Coverflow.propTypes = {
   enableHeading: React.PropTypes.bool,
   enableScroll: React.PropTypes.bool,
   active: React.PropTypes.number,
-  maskClassName: React.PropTypes.string
+  maskClassName: React.PropTypes.string,
+  itemSize: React.PropTypes.string
 };
 
 Coverflow.defaultProps = {
