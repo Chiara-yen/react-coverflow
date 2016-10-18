@@ -150,12 +150,6 @@ class Coverflow extends Component {
     let style = {};
     let baseWidth = width / (displayQuantityOfSide * 2 + 1);
     let length = React.Children.count(this.props.children);
-    // Handle opacity
-    let depth = displayQuantityOfSide - Math.abs(current - index);
-    let opacity = depth === 1 ? 0.95 : 0.5;
-    opacity = depth === 2 ? 0.92 : opacity;
-    opacity = depth === 3 ? 0.9 : opacity;
-    opacity = current === index ? 1 : opacity;
 
     const tX = this.state.move - (baseWidth / 2);
 
@@ -163,21 +157,55 @@ class Coverflow extends Component {
     if (index === current) {
       style['width'] = `${baseWidth}px`;
       style['transform'] = `translateX(${tX}px) scale(1.2)`;
-      style['zIndex'] = `${10 - depth}`;
-      style['opacity'] = opacity;
     } else if (index < current) {
       // Left side
       style['width'] = `${baseWidth}px`;
       style['transform'] = `translateX(${tX}px) rotateY(40deg)`;
-      style['zIndex'] = `${10 - depth}`;
-      style['opacity'] = opacity;
     } else if (index > current) {
       // Right side
       style['width'] = `${baseWidth}px`;
       style['transform'] = ` translateX(${tX}px) rotateY(-40deg)`;
-      style['zIndex'] = `${10 - depth}`;
-      style['opacity'] = opacity;
     }
+    return style;
+  }
+
+  _handleFigureMaskStyle(index, current) {
+    const { maskClassName } = this.props;
+    let style = {};
+    let baseWidth = this.state.width / (this.props.displayQuantityOfSide * 2 + 1);
+
+    // Handle opacity
+    let depth = Math.abs(current - index);
+    let opacity;
+    switch (depth) {
+      case 0:
+        opacity = 0;
+        break;
+
+      case 1:
+        opacity = 0.2;
+        break;
+
+      case 2:
+        opacity = 0.4;
+        break;
+
+      default:
+        opacity = 0.6;
+    }
+
+    if (maskClassName) {
+      style['opacity'] = opacity;
+
+    } else {
+      style['width'] = `${baseWidth}px`;
+      style['height'] = `100%`;
+      style['zIndex'] = `${10 - depth}`;
+      style['background'] = `rgba(0,0,0,${opacity})`;
+      style['position'] = `absolute`;
+      style['top'] = `0`;
+    }
+
     return style;
   }
 
@@ -209,11 +237,12 @@ class Coverflow extends Component {
   }
 
   _renderFigureNodes() {
-    const {enableHeading} = this.props;
+    const {enableHeading, maskClassName} = this.props;
 
     let figureNodes = React.Children.map(this.props.children, (child, index) => {
       let figureElement = React.cloneElement(child, {className: styles.cover});
       let style = this._handleFigureStyle(index, this.state.current);
+      let maskStyle = this._handleFigureMaskStyle(index, this.state.current);
       return (
         <figure className={styles.figure}
           key={index}
@@ -226,6 +255,7 @@ class Coverflow extends Component {
             enableHeading &&
             <div className={styles.text}>{figureElement.props.alt}</div>
           }
+          <div className={maskClassName} style={maskStyle} />
         </figure>
       );
     });
@@ -322,7 +352,8 @@ Coverflow.propTypes = {
   navigation: React.PropTypes.bool,
   enableHeading: React.PropTypes.bool,
   enableScroll: React.PropTypes.bool,
-  active: React.PropTypes.number
+  active: React.PropTypes.number,
+  maskClassName: React.PropTypes.string
 };
 
 Coverflow.defaultProps = {
