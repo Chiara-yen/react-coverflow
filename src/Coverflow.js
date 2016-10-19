@@ -7,11 +7,13 @@ import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
 import Radium from 'radium';
 import styles from './stylesheets/coverflow';
+import classnames from 'classnames';
 
 import injectTapEventPlugin from 'react-tap-event-plugin';
 injectTapEventPlugin();
 
-var TOUCH = {move: false,
+var TOUCH = {
+  move: false,
   lastX: 0,
   sign: 0,
   lastMove: 0
@@ -39,7 +41,8 @@ class Coverflow extends Component {
       current: this._center(),
       move: 0,
       width: this.props.width || 'auto',
-      height: this.props.height || 'auto'
+      height: this.props.height || 'auto',
+      isWeeling: false
     };
   }
 
@@ -214,17 +217,17 @@ class Coverflow extends Component {
       return;
     }
 
+    if (typeof action === 'string') {
+      window.open(action, '_blank');
+    } else if (typeof action === 'function') {
+      action();
+    }
+
     this.refs.stage.style['pointerEvents'] = 'none';
     if (this.state.current === index) {
       this._removePointerEvents();
 
     } else {
-
-      if (typeof action === 'string') {
-        window.open(action, '_blank');
-      } else if (typeof action === 'function') {
-        action();
-      }
 
       const {displayQuantityOfSide} = this.props;
       const {width} = this.state;
@@ -236,10 +239,12 @@ class Coverflow extends Component {
   }
 
   _renderFigureNodes() {
-    const {enableHeading, maskClassName} = this.props;
+    const {enableHeading, maskClassName, itemHoveredClassName} = this.props;
 
     let figureNodes = React.Children.map(this.props.children, (child, index) => {
-      let figureElement = React.cloneElement(child, {className: styles.cover});
+      let figureElementClassName = classnames(
+        styles.cover, { 'hover': this.state.isWeeling && index === this.state.current });
+      let figureElement = React.cloneElement(child, {className: figureElementClassName});
       let style = this._handleFigureStyle(index, this.state.current);
       let maskStyle = this._handleFigureMaskStyle(index, this.state.current);
       return (
@@ -296,8 +301,8 @@ class Coverflow extends Component {
   _handleWheel(e) {
     e.preventDefault();
 
-    let delta = e.deltaY * (-120);
-    let count = Math.ceil(Math.abs(delta) / 120);
+    let delta = e.deltaX * 100 ;
+    let count = Math.ceil(Math.abs(delta) / 100);
 
     if (count > 0) {
       const sign = Math.abs(delta) / delta;
@@ -312,6 +317,15 @@ class Coverflow extends Component {
       if (typeof func === 'function') {
         for (let i = 0; i < count; i++) func();
       }
+    }
+
+    const { isWeeling } = this.state;
+    if (isWeeling) {
+      if (count === 0) {
+        this.setState({ isWeeling: false });
+      }
+    } else {
+      this.setState({ isWeeling: true });
     }
   }
 
